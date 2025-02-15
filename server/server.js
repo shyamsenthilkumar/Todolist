@@ -7,9 +7,11 @@ app.use(cors({ origin: "*" })); // Allow all origins (for testing)
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
 
-mongoose.connect("mongodb://localhost:27017/todolist")
-    .then(() => console.log("MongoDB is connected"))
-    .catch(err => console.error("MongoDB connection error:", err));
+const MONGO_URI = "mongodb+srv://Shyam_8870:Shyam%408870@cluster0.8kc0m.mongodb.net/todolist?retryWrites=true&w=majority";
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log("✅ MongoDB is connected"))
+    .catch(err => console.error("❌ MongoDB connection error:", err));
+
 
 app.get("/get", async (req, res) => {
     try {
