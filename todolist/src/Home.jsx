@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { BsCircleFill } from "react-icons/bs";
-import { AiFillDelete } from "react-icons/ai";
-import { AiFillEdit } from "react-icons/ai"; // Import edit icon
+import { AiFillDelete, AiFillEdit } from "react-icons/ai";
 
 function Home() {
   const [todos, setTodos] = useState([]);
@@ -34,15 +33,17 @@ function Home() {
   };
 
   const handleEdit = (id, newTask) => {
+    if (!newTask.trim()) return; // ✅ Prevent empty updates
+
     axios
-      .put(`http://localhost:3000/update/${id}`, { task: newTask }) // ✅ Send new task text
+      .put(`http://localhost:3000/update/${id}`, { task: newTask }) // ✅ Send updated task to backend
       .then(() => {
         setTodos((prevTodos) =>
           prevTodos.map((todo) =>
             todo._id === id ? { ...todo, task: newTask } : todo
           )
         );
-        setEditId(null);
+        setEditId(null); // ✅ Exit edit mode after update
       })
       .catch((err) => console.log(err));
   };
@@ -57,7 +58,7 @@ function Home() {
   };
 
   return (
-    <div style={{"marginLeft":"600px"}}>
+    <div style={{ marginLeft: "600px" }}>
       <h1>Todo List</h1>
       <div>
         <input
@@ -65,8 +66,9 @@ function Home() {
           placeholder="Enter task"
           value={task}
           onChange={(e) => setTask(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleAdd()} // Listen for Enter key
         />
-        <button type="button" onClick={handleAdd}>
+        <button type="button" style={{ backgroundColor: "green", color: "white", padding: "5px 10px", border: "none", borderRadius: "5px", cursor: "pointer" }} onClick={handleAdd}>
           Add
         </button>
       </div>
@@ -83,9 +85,9 @@ function Home() {
                 type="text"
                 value={editTask}
                 onChange={(e) => setEditTask(e.target.value)}
-                onBlur={() => handleEdit(todo._id, editTask)}
+                onBlur={() => handleEdit(todo._id, editTask)} // ✅ Save on blur
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") handleEdit(todo._id, editTask);
+                  if (e.key === "Enter") handleEdit(todo._id, editTask); // ✅ Save on Enter
                 }}
                 autoFocus
               />

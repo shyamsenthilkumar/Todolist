@@ -2,9 +2,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const todoModel = require("./Models/todo.js");
-
 const app = express();
-
+app.use(cors({ origin: "*" })); // Allow all origins (for testing)
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
 
@@ -33,9 +32,18 @@ app.post("/add", async (req, res) => {
 app.put("/update/:id", async (req, res) => {
     try {
         const { id } = req.params;
+        const { task } = req.body; // Extract the new task from request body
+
         const updatedTodo = await todoModel.findByIdAndUpdate(
-            id, { done: true }, { new: true } 
+            id,
+            { task }, // ✅ Update task instead of setting done to true
+            { new: true } // ✅ Return updated document
         );
+
+        if (!updatedTodo) {
+            return res.status(404).json({ message: "Todo not found" });
+        }
+
         res.json(updatedTodo);
     } catch (err) {
         res.status(500).json({ error: err.message });
