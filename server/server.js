@@ -10,21 +10,13 @@ const PORT = 3000;
 app.use(cors({ origin: "*" })); // Allow all origins (for testing)
 app.use(express.json());
 
-// MongoDB Connection URI
-const MONGO_URI = "mongodb+srv://Shyam_8870:Shyam%408870@cluster0.8kc0m.mongodb.net/todolist?retryWrites=true&w=majority";
+const MONGO_URI = "mongodb+srv://Shyam_8870:Shyam%408870@cluster0.8kc0m.mongodb.net/todolist";
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log("✅ MongoDB is connected"))
+    .catch(err => console.error("❌ MongoDB connection error:", err));
 
-// Connect to MongoDB with error handling
-mongoose
-  .connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 5000, // ⏳ Timeout to prevent long hangs
-  })
-  .then(() => console.log("✅ MongoDB connected successfully"))
-  .catch((err) => {
-    console.error("❌ MongoDB connection error:", err.message);
-    process.exit(1); // Exit if the database doesn't connect
-  });
+
+// MongoDB Connection URI
 
 // Routes
 app.get("/get", async (req, res) => {
