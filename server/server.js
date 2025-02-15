@@ -8,9 +8,22 @@ app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
 
 const MONGO_URI = "mongodb+srv://Shyam_8870:Shyam%408870@cluster0.8kc0m.mongodb.net/todolist?retryWrites=true&w=majority";
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log("✅ MongoDB is connected"))
-    .catch(err => console.error("❌ MongoDB connection error:", err));
+
+async function connectDB() {
+    try {
+        await mongoose.connect(MONGO_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            serverSelectionTimeoutMS: 5000, // ⏳ Avoid long waiting time
+        });
+        console.log("✅ MongoDB connected successfully");
+    } catch (error) {
+        console.error("❌ MongoDB connection error:", error.message);
+        process.exit(1); // Stop server if DB connection fails
+    }
+}
+
+connectDB();
 
 
 app.get("/get", async (req, res) => {
