@@ -2,64 +2,85 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const todoModel = require("./Models/todo.js");
+
 const app = express();
+const PORT = 3000;
+
+// Middleware
 app.use(cors({ origin: "*" })); // Allow all origins (for testing)
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
 
+// MongoDB Connection URI
 const MONGO_URI = "mongodb+srv://Shyam_8870:Shyam%408870@cluster0.8kc0m.mongodb.net/todolist?retryWrites=true&w=majority";
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log("✅ MongoDB is connected"))
-    .catch(err => console.error("❌ MongoDB connection error:", err));
 
+// Connect to MongoDB with error handling
+mongoose
+  .connect(MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000, // ⏳ Timeout to prevent long hangs
+  })
+  .then(() => console.log("✅ MongoDB connected successfully"))
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err.message);
+    process.exit(1); // Exit if the database doesn't connect
+  });
 
+// Routes
 app.get("/get", async (req, res) => {
-    try {
-        const todos = await todoModel.find();
-        res.json(todos);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+  try {
+    const todos = await todoModel.find();
+    res.json(todos);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post("/add", async (req, res) => {
-    try {
-        const { task } = req.body;
-        const newTodo = await todoModel.create({ task });
-        res.json(newTodo);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+  try {
+    const { task } = req.body;
+    if (!task) return res.status(400).json({ error: "Task is required" });
+
+    const newTodo = await todoModel.create({ task });
+    res.json(newTodo);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
+
 app.put("/update/:id", async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { task } = req.body; // Extract the new task from request body
+  try {
+    const { id } = req.params;
+    const { task } = req.body;
 
-        const updatedTodo = await todoModel.findByIdAndUpdate(
-            id,
-            { task }, // ✅ Update task instead of setting done to true
-            { new: true } // ✅ Return updated document
-        );
+    if (!task) return res.status(400).json({ error: "Task is required" });
 
-        if (!updatedTodo) {
-            return res.status(404).json({ message: "Todo not found" });
-        }
+    const updatedTodo = await todoModel.findByIdAndUpdate(
+      id,
+      { task },
+      { new: true } // Return updated document
+    );
 
-        res.json(updatedTodo);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    if (!updatedTodo) return res.status(404).json({ message: "Todo not found" });
+
+    res.json(updatedTodo);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
+
 app.delete("/delete/:id", async (req, res) => {
-    try {
-        const { id } = req.params;
-        const deletedTodo = await todoModel.findByIdAndDelete(id);
-        if (!deletedTodo) return res.status(404).json({ error: "Todo not found" });
-        res.json({ message: "Deleted successfully", deletedTodo });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+  try {
+    const { id } = req.params;
+    const deletedTodo = await todoModel.findByIdAndDelete(id);
+
+    if (!deletedTodo) return res.status(404).json({ error: "Todo not found" });
+
+    res.json({ message: "Deleted successfully", deletedTodo });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.listen(3000, () => console.log("Server running on port 3000"));
+// Start Server
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
